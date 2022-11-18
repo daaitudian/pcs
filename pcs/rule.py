@@ -5,6 +5,7 @@ from typing import (
     List,
     Optional,
 )
+from datetime import datetime
 
 from pcs import utils
 from pcs.common import (
@@ -304,6 +305,11 @@ def has_node_attr_expr_with_type_integer(rule_tree):
                 has_node_attr_expr_with_type_integer(child)
                 for child in rule_tree.children
             )
+        if ( rule_tree.symbol_id in RuleParser.date_comparison_list
+             and rule_tree.children[0].value == "date"
+             and rule_tree.children[1].is_not_iso_date()
+           ):
+            raise UnexpectedDateType("%s is not a ISO8601-formatted date." %rule_tree.children[1].value)
         if (
             rule_tree.symbol_id in RuleParser.date_comparison_list
             and rule_tree.children[0].value == "date"
@@ -340,6 +346,13 @@ class SymbolBase:
         raise SyntaxError(
             "unexpected '%s' after '%s'" % (self.label(), left.label())
         )
+
+    def is_not_iso_date(self):
+        try:
+            result=datetime.fromisoformat(self.value)
+            return False
+        except ValueError:
+            return True
 
     def is_end(self):
         return self.symbol_id == SymbolBase.END
@@ -624,6 +637,10 @@ class UnexpectedEndOfInput(ParserException):
 
 class SyntaxError(ParserException):
     # pylint: disable=redefined-builtin
+    pass
+
+
+class UnexpectedDateType(ParserException):
     pass
 
 

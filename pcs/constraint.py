@@ -1210,6 +1210,8 @@ def location_rule(lib, argv, modifiers):
             utils.checkAndUpgradeCIB(
                 const.PCMK_RULES_NODE_ATTR_EXPR_WITH_INT_TYPE_CIB_VERSION
             )
+    except rule_utils.UnexpectedDateType as e:
+        utils.err(e)
     except (rule_utils.ParserException, rule_utils.CibBuilderException):
         pass
 
